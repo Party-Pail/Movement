@@ -69,6 +69,9 @@ public abstract class SourceMoveMode : MoveMode
         var wish = Controller.WishVelocity;
         if ( wish.IsNearZeroLength ) return;
 
+        var wishDir = wish.Normal;
+        var wishSpeed = wish.Length;
+
         var groundVelocity = Controller.GroundVelocity;
         var currentZ = body.Velocity.z;
     
@@ -76,12 +79,16 @@ public abstract class SourceMoveMode : MoveMode
 
         if ( !Controller.IsOnGround )
         {
-            wish = wish.ClampLength( GetMaxAirSpeed() );
+            wishSpeed = MathF.Min(wishSpeed, GetMaxAirSpeed() );
         }
 
-        var maxAddedSpeed = wish.Length - velocity.Dot( wish.Normal );
+        var maxAddedSpeed = wishSpeed - velocity.Dot( wishDir );
         if ( maxAddedSpeed > 0 )
         {
+            // We are intentionally using the original wish vector here
+            // and not scaling it to `wishSpeed`. This is how Quake did it;
+            // take it up with id. Because every game descended from it
+            // did the same thing, doing it "right" feels wrong.
             var accel = wish * Time.Delta * GetAcceleration() * GetFriction();
             accel = accel.ClampLength( maxAddedSpeed );
 
