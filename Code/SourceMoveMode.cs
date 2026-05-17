@@ -79,7 +79,7 @@ public abstract class SourceMoveMode : MoveMode
 
         if ( !Controller.IsOnGround )
         {
-            wishSpeed = MathF.Min(wishSpeed, GetMaxAirSpeed() );
+            wishSpeed = MathF.Min( wishSpeed, GetMaxAirSpeed() );
         }
 
         var maxAddedSpeed = wishSpeed - velocity.Dot( wishDir );

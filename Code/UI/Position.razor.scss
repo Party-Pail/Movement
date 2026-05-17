@@ -1,0 +1,34 @@
+Position
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+
+	.hud-panel
+	{
+		flex-direction: row;;
+		gap: 16px;
+		padding: 22px 22px;
+		background-color: #0006;
+		border-radius: 8px;
+		font-family: "Poppins";
+
+		.value
+		{
+			font-size: 29px;
+			font-weight: 700;
+			color: #fafaff;
+		}
+	}
+
+	.position
+	{
+		min-width: 20vw;
+		position: absolute;
+		flex-direction: column;
+		top: 2vw;
+		right: 2vw;
+		gap: 0.5vw;
+	}
+}

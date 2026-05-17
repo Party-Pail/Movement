@@ -1,0 +1,52 @@
+@using Sandbox;
+@using Sandbox.UI;
+@using System;
+@inherits PanelComponent
+@namespace PartyPail.Movement
+
+<root>
+	<div class="position hud-panel">
+		<div class="world-position">
+			<label class="value">pos: @(DisplayPosition)</label>
+		</div>
+		<div class="angles">
+			<label class="value">ang: @(DisplayAngles)</label>
+		</div>
+		<div class="velocity">
+			<label class="value">vel: @(DisplayVelocity)</label>
+		</div>
+		<div class="friction">
+			<label class="value">fric: @(DisplayFriction)</label>
+		</div>
+		<div class="wish">
+			<label class="value">wish: @(DisplayWish)</label>
+		</div>
+	</div>
+</root>
+
+@code
+{
+
+	[RequireComponent] public PlayerController Controller { get; set; }
+
+	string DisplayPosition => $"{MathF.Round(Controller.Body.WorldPosition.x, 3)} "
+		+ $"{MathF.Round(Controller.Body.WorldPosition.y, 3)} "
+		+ $"{MathF.Round(Controller.Body.WorldPosition.z, 3)}";
+	string DisplayAngles => $"{MathF.Round(Controller.EyeAngles.pitch, 3)} "
+		+ $"{MathF.Round(Controller.EyeAngles.roll, 3)} "
+		+ $"{MathF.Round(Controller.EyeAngles.yaw, 3)}";
+	string DisplayVelocity => $"{MathF.Round(Controller.Body.Velocity.x, 3)} "
+		+ $"{MathF.Round(Controller.Body.Velocity.y, 3)} "
+		+ $"{MathF.Round(Controller.Body.Velocity.z, 3)}";
+	string DisplayFriction => $"{MathF.Round(Controller.GroundFriction)}";
+	string DisplayWish => $"{MathF.Round(Controller.WishVelocity.x, 3)} "
+		+ $"{MathF.Round(Controller.WishVelocity.y, 3)} "
+		+ $"{MathF.Round(Controller.WishVelocity.z, 3)}";
+
+
+	protected override int BuildHash() => System.HashCode.Combine(
+		Controller.Body.WorldPosition,
+		Controller.Body.Velocity,
+		Controller.EyeAngles
+	);
+}
