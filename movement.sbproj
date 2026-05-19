@@ -14,7 +14,7 @@
     "Compiler": {
       "RootNamespace": "PartyPail.Movement",
       "DefineConstants": "SANDBOX",
-      "NoWarn": "1701;1702;1591;",
+      "NoWarn": "1701;1702;1591",
       "WarningsAsErrors": "",
       "TreatWarningsAsErrors": false,
       "Nullables": false,
