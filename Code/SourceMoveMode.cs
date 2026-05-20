@@ -1,4 +1,7 @@
 using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using Sandbox;
 using Sandbox.Movement;
 
@@ -7,7 +10,7 @@ namespace PartyPail.Movement;
 /// <summary>
 /// Source 1/Quake-based movement mode.
 /// </summary>
-public abstract class SourceMoveMode : MoveMode
+public abstract class SourceMoveMode : MoveMode, Component.ICollisionListener
 {
     /// <summary>
     /// Enable to use overrides specific to this component instance.
@@ -63,6 +66,21 @@ public abstract class SourceMoveMode : MoveMode
     [ConVar( "sv_maxairspeed", ConVarFlags.Replicated, Help = "Maximum air (wish) speed, in units/tick." )]
     public static float GlobalMaxAirSpeed { get; set; } = 30;
 
+    private List<Vector3> collisionPlanes = [];
+
+    public void OnCollisionUpdate( Collision other )
+    {
+        if ( collisionPlanes.Count >= 3 ) return;
+        collisionPlanes.Add( other.Contact.Normal );
+    }
+
+	public override void PrePhysicsStep()
+	{
+		base.PostPhysicsStep();
+
+        collisionPlanes.Clear();
+	}
+
     public override void AddVelocity()
     {
         var body = Controller.Body;
@@ -74,8 +92,13 @@ public abstract class SourceMoveMode : MoveMode
 
         var groundVelocity = Controller.GroundVelocity;
         var currentZ = body.Velocity.z;
-    
-        var velocity = body.Velocity - groundVelocity;
+
+        var velocity = body.Velocity;
+        if ( Controller.IsOnGround )
+        {
+            velocity = velocity.WithFriction( 8.0f * Time.Delta * Controller.GroundFriction, 100 );
+        }
+        velocity -= groundVelocity;
 
         if ( !Controller.IsOnGround )
         {
@@ -100,6 +123,12 @@ public abstract class SourceMoveMode : MoveMode
             velocity.z = currentZ;
         }
 
+        Log.Info( $"original vel: {velocity}" );
+        foreach ( Vector3 normal in collisionPlanes )
+        {
+            velocity = ClipVelocity( velocity, normal );
+        }
+        Log.Info( $"adjusted vel: {velocity}" );
         body.Velocity = velocity;
     }
 
@@ -178,5 +207,19 @@ public abstract class SourceMoveMode : MoveMode
     private float GetMaxAirSpeed()
     {
         return UseLocalCharacteristics ? MaxAirSpeed : GlobalMaxAirSpeed;
+    }
+
+    private static Vector3 ClipVelocity( Vector3 velocity, Vector3 normal, float bounce = 1.0f )
+    {
+        var clipped = velocity - velocity.Dot( normal ) * bounce;
+
+        // We shouldn't need to do this twice, but everyone else does.
+        var adjust = clipped.Dot( normal );
+        if ( adjust > 0.0f )
+        {
+            clipped -= normal * adjust;
+        }
+
+        return clipped;
     }
 }
