@@ -21,12 +21,12 @@ public class SourceMoveModeWalk : SourceMoveMode
     /// <summary>
     /// Maximum height the character can automatically descend, as a "step."
     /// </summary>
-	[Property, Group( "UseLocalCharacteristics" )] public float StepDownHeight { get; set; } = 18.0f;
+	[Property] public float StepDownHeight { get; set; } = 0.095f;
 
     [ConVar( "sv_groundangle", ConVarFlags.Replicated, Help = "Maximum angle the ground can be before the character starts sliding down it." )]
     public static float GlobalGroundAngle { get; set; } = 45.0f;
     [ConVar( "sv_stepsize", ConVarFlags.Replicated, Help = "Maximum height the character can automatically traverse, as a \"step.\"" )]
-    public static float GlobalStepHeight { get; set; } = 45.0f;
+    public static float GlobalStepHeight { get; set; } = 18.0f;
 
 	public override bool AllowGrounding => true;
 	public override bool AllowFalling => true;
@@ -54,10 +54,10 @@ public class SourceMoveModeWalk : SourceMoveMode
 	{
 		base.PostPhysicsStep();
 
-        StickToGround( GetStepDownHeight() );
+        StickToGround( StepDownHeight );
 	}
 
-	public override bool IsStandableSurace( in SceneTraceResult result )
+	public override bool IsStandableSurface( in SceneTraceResult result )
 	{
         return Vector3.GetAngle( Vector3.Up, result.Normal ) <= GroundAngle;
 	}
@@ -72,10 +72,5 @@ public class SourceMoveModeWalk : SourceMoveMode
     private float GetStepUpHeight()
     {
         return UseLocalCharacteristics ? StepUpHeight : GlobalStepHeight;
-    }
-
-    private float GetStepDownHeight()
-    {
-        return UseLocalCharacteristics ? StepDownHeight : GlobalStepHeight;
     }
 }

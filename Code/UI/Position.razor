@@ -1,6 +1,6 @@
+@using System;
 @using Sandbox;
 @using Sandbox.UI;
-@using System;
 @inherits PanelComponent
 @namespace PartyPail.Movement
 
@@ -30,7 +30,7 @@
 @code
 {
 
-	[RequireComponent] public PlayerController Controller { get; set; }
+	[Property, RequireComponent] public PlayerController Controller { get; set; }
 
 	string DisplayPosition => $"{MathF.Round(Controller.Body.WorldPosition.x, 3)} "
 		+ $"{MathF.Round(Controller.Body.WorldPosition.y, 3)} "

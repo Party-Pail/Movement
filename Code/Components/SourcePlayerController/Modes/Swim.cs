@@ -20,13 +20,6 @@ public partial class MoveModeSwim : MoveMode
 	/// </summary>
 	public float WaterLevel { get; private set; }
 
-	public override void UpdateRigidBody( Rigidbody body )
-	{
-		body.Gravity = false;
-		body.LinearDamping = 3.3f;
-		body.AngularDamping = 1f;
-	}
-
 	public override int Score( PlayerController controller )
 	{
 		if ( WaterLevel > SwimLevel ) return Priority;
@@ -41,12 +34,6 @@ public partial class MoveModeSwim : MoveMode
 	public override void OnModeEnd( MoveMode next )
 	{
 		Controller.IsSwimming = false;
-
-		// jump when leaving the water
-		if ( Input.Down( "Jump" ) )
-		{
-			Controller.Jump( Vector3.Up * 300 );
-		}
 	}
 
 	protected override void OnFixedUpdate()

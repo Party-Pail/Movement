@@ -35,25 +35,8 @@ public abstract partial class MoveMode : Component
 
 	}
 
-	public virtual void UpdateRigidBody( Rigidbody body )
+	public virtual void UpdateBody( Rigidbody body )
 	{
-		bool wantsGravity = false;
-
-		// If we're standing still on a peice of ground, turn off gravity until
-		// we move again. This stops us slowly slipping down surfaces.
-		if ( !Controller.IsOnGround ) wantsGravity = true;
-		if ( Controller.Velocity.Length > 1 ) wantsGravity = true;
-		if ( Controller.GroundVelocity.Length > 1 ) wantsGravity = true;
-		if ( Controller.GroundIsDynamic ) wantsGravity = true;
-
-		body.Gravity = wantsGravity;
-
-		// when we're standing on the still ground and aren't wishing to move we apply a high linear damping to the body
-		// this stops whatever momentum it had from dragging it slowly down hills.
-		bool wantsbrakes = Controller.IsOnGround && Controller.WishVelocity.Length < 1 && Controller.GroundVelocity.Length < 1;
-		body.LinearDamping = wantsbrakes ? (10.0f * Controller.BrakePower) : Controller.AirFriction;
-
-		body.AngularDamping = 1f;
 	}
 
 	public virtual void AddVelocity()
@@ -128,14 +111,9 @@ public abstract partial class MoveMode : Component
 		Controller.Reground( maxDistance );
 	}
 
-	public virtual bool IsStandableSurace( in SceneTraceResult result )
-	{
-		return false;
-	}
-
 	public virtual bool IsStandableSurface( in SceneTraceResult result )
 	{
-		return IsStandableSurace( result );
+		return false;
 	}
 
 	Vector3.SmoothDamped smoothedMovement;

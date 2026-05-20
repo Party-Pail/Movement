@@ -12,7 +12,7 @@ public partial class MoveModeWalk : MoveMode
 
 	[Property] public float GroundAngle { get; set; } = 45.0f;
 	[Property] public float StepUpHeight { get; set; } = 18.0f;
-	[Property] public float StepDownHeight { get; set; } = 18.0f;
+	[Property] public float StepDownHeight { get; set; } = 0.095f;
 
 
 	public override bool AllowGrounding => true;

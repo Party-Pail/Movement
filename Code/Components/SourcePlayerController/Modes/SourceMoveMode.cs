@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Sandbox;
 
 namespace PartyPail.Movement;
@@ -62,11 +63,36 @@ public abstract class SourceMoveMode : MoveMode
     [ConVar( "sv_maxairspeed", ConVarFlags.Replicated, Help = "Maximum air (wish) speed, in units/tick." )]
     public static float GlobalMaxAirSpeed { get; set; } = 30;
 
+    private readonly List<Vector3> collisionPlanes = [];
+
+    public void OnCollisionUpdate( Collision other )
+    {
+        if ( collisionPlanes.Count >= 3 ) return;
+        collisionPlanes.Add( other.Contact.Normal );
+    }
+
+    // Returns a gravity vector scaled by the player's gravity scale
+    // and frame time.
+    private Vector3 GetGravity()
+    {
+        return Scene.PhysicsWorld.Gravity * Controller.Body.GravityScale * Time.Delta;
+    }
+
+	public override void PrePhysicsStep()
+	{
+		base.PrePhysicsStep();
+
+        collisionPlanes.Clear();
+
+        var gravity = GetGravity();
+        Controller.Body.Velocity += gravity;
+        Controller.Body.Velocity += Controller.GroundVelocity.ProjectOnNormal( gravity.Normal );
+	}
+
     public override void AddVelocity()
     {
         var body = Controller.Body;
         var wish = Controller.WishVelocity;
-        if ( wish.IsNearZeroLength ) return;
 
         var wishDir = wish.Normal;
         var wishSpeed = wish.Length;
@@ -74,7 +100,12 @@ public abstract class SourceMoveMode : MoveMode
         var groundVelocity = Controller.GroundVelocity;
         var currentZ = body.Velocity.z;
     
-        var velocity = body.Velocity - groundVelocity;
+        var velocity = body.Velocity;
+        if ( Controller.IsOnGround )
+        {
+            velocity = velocity.WithFriction( 8.0f * Time.Delta * Controller.GroundFriction, 100 );
+        }
+        velocity -= groundVelocity;
 
         if ( !Controller.IsOnGround )
         {
@@ -99,6 +130,10 @@ public abstract class SourceMoveMode : MoveMode
             velocity.z = currentZ;
         }
 
+        foreach ( Vector3 normal in collisionPlanes )
+        {
+            velocity = ClipVelocity( velocity, normal );
+        }
         body.Velocity = velocity;
     }
 
@@ -109,11 +144,6 @@ public abstract class SourceMoveMode : MoveMode
 		input = input.ClampLength( 1 );
         var direction = eyes * input;
         var velocity = GetSpeed();
-
-        if ( direction.IsNearlyZero( 0.1f ) )
-        {
-            return 0;
-        }
 
         var wish = (direction * velocity).ClampLength( GetMaxSpeed() );
 
@@ -130,7 +160,6 @@ public abstract class SourceMoveMode : MoveMode
         if ( wish.IsNearlyZero( 0.01f ) )
         {
             if ( InterpolateWishSpeed ) smoothedWish.Current = 0;
-            return 0;
         }
 
         return wish;
@@ -138,7 +167,7 @@ public abstract class SourceMoveMode : MoveMode
 
     private float GetFriction()
     {
-        return Controller.IsOnGround ? MathF.Max( Controller.GroundFriction * 1.25f, 1.0f ) : Controller.AirFriction;
+        return Controller.IsOnGround ? MathF.Max( Controller.GroundFriction * 1.25f, 1.0f ) : 0.25f;
     }
 
     private float GetAcceleration()
@@ -177,5 +206,19 @@ public abstract class SourceMoveMode : MoveMode
     private float GetMaxAirSpeed()
     {
         return UseLocalCharacteristics ? MaxAirSpeed : GlobalMaxAirSpeed;
+    }
+
+    private static Vector3 ClipVelocity( Vector3 velocity, Vector3 normal, float bounce = 1.0f )
+    {
+        var clipped = velocity - velocity.Dot( normal ) * bounce;
+
+        // We shouldn't need to do this twice, but everyone else does.
+        var adjust = clipped.Dot( normal );
+        if ( adjust > 0.0f )
+        {
+            clipped -= normal * adjust;
+        }
+
+        return clipped;
     }
 }

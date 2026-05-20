@@ -18,31 +18,17 @@ public sealed partial class PlayerController : Component, IScenePhysicsEvents, C
 
 	[Property, Hide, RequireComponent] public Rigidbody Body { get; set; }
 
-	public CapsuleCollider BodyCollider { get; private set; }
-	public BoxCollider FeetCollider { get; private set; }
+	public BoxCollider BodyCollider { get; private set; }
 
 	[Property, Hide]
 	public GameObject ColliderObject { get; private set; }
 
 	bool _showRigidBodyComponent;
 
-
 	[Property, Group( "Body" ), Range( 1, 64 )] public float BodyRadius { get; set; } = 16.0f;
 	[Property, Group( "Body" ), Range( 1, 128 )] public float BodyHeight { get; set; } = 72.0f;
 	[Property, Group( "Body" ), Range( 1, 1000 )] public float BodyMass { get; set; } = 500;
 	[Property, Group( "Body" )] public TagSet BodyCollisionTags { get; set; }
-
-	/// <summary>
-	/// We will apply extra friction when we're on the ground and our desired velocity is
-	/// lower than our current velocity, so we will slow down.
-	/// </summary>
-	[Property, Group( "Physics" ), Range( 0, 1 )] public float BrakePower { get; set; } = 1;
-
-	/// <summary>
-	/// How much friction to add when we're in the air. This will slow you down unless you have a wish
-	/// velocity.
-	/// </summary>
-	[Property, Group( "Physics" ), Range( 0, 1 )] public float AirFriction { get; set; } = 0.1f;
 
 
 	[Property, Group( "Components" ), Title( "Show Rigidbody" )]
@@ -60,15 +46,13 @@ public sealed partial class PlayerController : Component, IScenePhysicsEvents, C
 		}
 	}
 
-	bool _showColliderComponent;
-
-	[Property, Group( "Components" ), Title( "Show Colliders" )]
-	public bool ShowColliderComponents
+	[Property, Group( "Components" ), Title( "Show Collider" )]
+	public bool ShowColliderComponent
 	{
-		get => _showColliderComponent;
+		get;
 		set
 		{
-			_showColliderComponent = value;
+			field = value;
 
 			if ( ColliderObject.IsValid() )
 			{
@@ -79,11 +63,6 @@ public sealed partial class PlayerController : Component, IScenePhysicsEvents, C
 			{
 				BodyCollider.Flags = BodyCollider.Flags.WithFlag( ComponentFlags.Hidden, !value );
 			}
-
-			if ( FeetCollider.IsValid() )
-			{
-				FeetCollider.Flags = FeetCollider.Flags.WithFlag( ComponentFlags.Hidden, !value );
-			}
 		}
 	}
 
@@ -91,6 +70,16 @@ public sealed partial class PlayerController : Component, IScenePhysicsEvents, C
 	public Vector3 WishVelocity { get; set; }
 
 	public bool IsOnGround => GroundObject.IsValid();
+
+	/// <summary>
+	/// Set to true when entering a climbing <see cref="MoveMode"/>.
+	/// </summary>
+	public bool IsClimbing { get; set; }
+
+	/// <summary>
+	/// Set to true when entering a swimming <see cref="MoveMode"/>.
+	/// </summary>
+	public bool IsSwimming { get; set; }
 
 	/// <summary>
 	/// Not touching the ground, and not swimming or climbing
@@ -107,33 +96,9 @@ public sealed partial class PlayerController : Component, IScenePhysicsEvents, C
 	/// </summary>
 	public Vector3 GroundVelocity { get; set; }
 
-	/// <summary>
-	/// Set to true when entering a climbing <see cref="MoveMode"/>.
-	/// </summary>
-	public bool IsClimbing { get; set; }
-
-	/// <summary>
-	/// Set to true when entering a swimming <see cref="MoveMode"/>.
-	/// </summary>
-	public bool IsSwimming { get; set; }
-
 	protected override void OnAwake()
 	{
 		base.OnAwake();
-
-		// Some scenes/prefabs may have saved the old colliders before
-		// we moved them to their own GameObject. If that's the case then
-		// we should destroy them right now to avoid any trouble.
-		{
-			var bc = GetComponent<BoxCollider>();
-			var cc = GetComponent<CapsuleCollider>();
-
-			if ( bc.IsValid() && cc.IsValid() && !bc.IsTrigger && !cc.IsTrigger )
-			{
-				bc.Destroy();
-				cc.Destroy();
-			}
-		}
 
 		Mode = GetOrAddComponent<MoveModeWalk>();
 
@@ -154,7 +119,7 @@ public sealed partial class PlayerController : Component, IScenePhysicsEvents, C
 			EyeAngles = WorldRotation.Angles() with { pitch = 0, roll = 0 };
 			WorldRotation = Rotation.Identity;
 
-			if ( Renderer is not null ) Renderer.WorldRotation = new Angles( 0, EyeAngles.yaw, 0 );
+			Renderer?.WorldRotation = new Angles( 0, EyeAngles.yaw, 0 );
 		}
 	}
 

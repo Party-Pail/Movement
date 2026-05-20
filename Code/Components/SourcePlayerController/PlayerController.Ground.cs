@@ -70,7 +70,7 @@ public sealed partial class PlayerController : Component
 
 		while ( tr.StartedSolid )
 		{
-			radiusScale = radiusScale - 0.1f;
+			radiusScale -= 0.1f;
 			if ( radiusScale < 0.7f )
 				return;
 
@@ -104,7 +104,6 @@ public sealed partial class PlayerController : Component
 	void CategorizeGround()
 	{
 		var groundVel = GroundVelocity.z;
-		bool wasOnGround = IsOnGround;
 
 		if ( !Mode.AllowGrounding )
 		{
@@ -121,7 +120,6 @@ public sealed partial class PlayerController : Component
 			return;
 		}
 
-		var velocity = Velocity - GroundVelocity;
 		if ( _timeUntilAllowedGround > 0 || groundVel > 300 )
 		{
 			UpdateGroundFromTraceResult( default );
@@ -136,7 +134,7 @@ public sealed partial class PlayerController : Component
 
 		while ( tr.StartedSolid || (tr.Hit && !Mode.IsStandableSurface( tr )) )
 		{
-			radiusScale = radiusScale - 0.1f;
+			radiusScale -= 0.1f;
 			if ( radiusScale < 0.7f )
 			{
 				UpdateGroundFromTraceResult( default );
@@ -176,7 +174,6 @@ public sealed partial class PlayerController : Component
 		if ( GroundObject is not null )
 		{
 			TimeSinceGrounded = 0;
-			_groundTransform = GroundObject.WorldTransform;
 			GroundFriction = tr.Surface.Friction;
 
 			if ( tr.Component is Collider collider )
@@ -190,7 +187,6 @@ public sealed partial class PlayerController : Component
 		else
 		{
 			TimeSinceUngrounded = 0;
-			_groundTransform = default;
 		}
 
 		if ( wasGrounded != IsOnGround )
