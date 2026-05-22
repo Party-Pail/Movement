@@ -163,6 +163,12 @@ public partial class MoveModeLadder : MoveMode
 
 		wishVelocity *= 1500.0f * Speed * (Controller.IsDucking ? 0.5f : 1f);
 
+		if ( Input.Down( "jump" ) )
+		{
+			// Jump away from ladder
+			Controller.Jump( ClimbingRotation.Backward * 200 );
+		}
+
 		return wishVelocity;
 	}
 

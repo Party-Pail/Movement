@@ -36,6 +36,11 @@ public partial class MoveModeSwim : MoveMode
 		Controller.IsSwimming = false;
 	}
 
+	public override void UpdateBody( Rigidbody body )
+	{
+		body.Gravity = false;
+	}
+
 	protected override void OnFixedUpdate()
 	{
 		UpdateWaterLevel();

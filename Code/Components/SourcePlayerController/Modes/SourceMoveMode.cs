@@ -84,9 +84,26 @@ public abstract class SourceMoveMode : MoveMode
 
         collisionPlanes.Clear();
 
-        var gravity = GetGravity();
-        Controller.Body.Velocity += gravity;
-        Controller.Body.Velocity += Controller.GroundVelocity.ProjectOnNormal( gravity.Normal );
+        // if ( !Controller.IsOnGround )
+        // {
+        //     var gravity = GetGravity();
+        //     Controller.Body.Velocity += gravity;
+        //     Controller.Body.Velocity += Controller.GroundVelocity.ProjectOnNormal( gravity.Normal );
+        // }
+	}
+
+	public override void UpdateBody( Rigidbody body )
+	{
+		bool wantsGravity = false;
+
+		// If we're standing still on a peice of ground, turn off gravity until
+		// we move again. This stops us slowly slipping down surfaces.
+		if ( !Controller.IsOnGround ) wantsGravity = true;
+		if ( Controller.Velocity.Length > 1 ) wantsGravity = true;
+		if ( Controller.GroundVelocity.Length > 1 ) wantsGravity = true;
+		if ( Controller.GroundIsDynamic ) wantsGravity = true;
+
+		body.Gravity = wantsGravity;
 	}
 
     public override void AddVelocity()
@@ -100,12 +117,11 @@ public abstract class SourceMoveMode : MoveMode
         var groundVelocity = Controller.GroundVelocity;
         var currentZ = body.Velocity.z;
     
-        var velocity = body.Velocity;
+        var velocity = body.Velocity - groundVelocity;
         if ( Controller.IsOnGround )
         {
             velocity = velocity.WithFriction( 8.0f * Time.Delta * Controller.GroundFriction, 100 );
         }
-        velocity -= groundVelocity;
 
         if ( !Controller.IsOnGround )
         {

@@ -32,6 +32,7 @@ public sealed partial class PlayerController : Component
 		Body.RigidbodyFlags = RigidbodyFlags.DisableCollisionSounds;
 
 		BodyCollider = ColliderObject.GetOrAddComponent<BoxCollider>();
+		BodyCollider.Friction = 0;
 
 		Body.Flags = Body.Flags.WithFlag( ComponentFlags.Hidden, !_showRigidBodyComponent );
 
