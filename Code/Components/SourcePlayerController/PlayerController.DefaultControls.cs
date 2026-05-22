@@ -66,6 +66,18 @@ public sealed partial class PlayerController : Component
 		{
 			UpdateAnimation( Renderer );
 		}
+
+		if ( DrawDebug )
+		{
+			var velocityPosition = WorldPosition + new Vector3( 0, 0, CurrentHeight * 0.5f );
+			var rot = EyeAngles with { pitch = 0 };
+			var localForward = Vector3.Forward * rot.ToRotation();
+			var localUp = Vector3.Up * rot.ToRotation();
+			var localRight = Vector3.Right * rot.ToRotation();
+			DebugOverlay.Line( new Line( velocityPosition, velocityPosition + Body.Velocity.ProjectOnNormal( localForward ) ), color: Color.Red );
+			DebugOverlay.Line( new Line( velocityPosition, velocityPosition + Body.Velocity.ProjectOnNormal( localUp ) ), color: Color.Blue );
+			DebugOverlay.Line( new Line( velocityPosition, velocityPosition + Body.Velocity.ProjectOnNormal( localRight ) ), color: Color.Green );
+		}
 	}
 
 	protected override void OnFixedUpdate()

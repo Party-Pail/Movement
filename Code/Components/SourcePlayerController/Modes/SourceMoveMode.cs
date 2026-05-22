@@ -63,35 +63,6 @@ public abstract class SourceMoveMode : MoveMode
     [ConVar( "sv_maxairspeed", ConVarFlags.Replicated, Help = "Maximum air (wish) speed, in units/tick." )]
     public static float GlobalMaxAirSpeed { get; set; } = 30;
 
-    private readonly List<Vector3> collisionPlanes = [];
-
-    public void OnCollisionUpdate( Collision other )
-    {
-        if ( collisionPlanes.Count >= 3 ) return;
-        collisionPlanes.Add( other.Contact.Normal );
-    }
-
-    // Returns a gravity vector scaled by the player's gravity scale
-    // and frame time.
-    private Vector3 GetGravity()
-    {
-        return Scene.PhysicsWorld.Gravity * Controller.Body.GravityScale * Time.Delta;
-    }
-
-	public override void PrePhysicsStep()
-	{
-		base.PrePhysicsStep();
-
-        collisionPlanes.Clear();
-
-        // if ( !Controller.IsOnGround )
-        // {
-        //     var gravity = GetGravity();
-        //     Controller.Body.Velocity += gravity;
-        //     Controller.Body.Velocity += Controller.GroundVelocity.ProjectOnNormal( gravity.Normal );
-        // }
-	}
-
 	public override void UpdateBody( Rigidbody body )
 	{
 		bool wantsGravity = false;
@@ -146,10 +117,6 @@ public abstract class SourceMoveMode : MoveMode
             velocity.z = currentZ;
         }
 
-        foreach ( Vector3 normal in collisionPlanes )
-        {
-            velocity = ClipVelocity( velocity, normal );
-        }
         body.Velocity = velocity;
     }
 
@@ -222,19 +189,5 @@ public abstract class SourceMoveMode : MoveMode
     private float GetMaxAirSpeed()
     {
         return UseLocalCharacteristics ? MaxAirSpeed : GlobalMaxAirSpeed;
-    }
-
-    private static Vector3 ClipVelocity( Vector3 velocity, Vector3 normal, float bounce = 1.0f )
-    {
-        var clipped = velocity - velocity.Dot( normal ) * bounce;
-
-        // We shouldn't need to do this twice, but everyone else does.
-        var adjust = clipped.Dot( normal );
-        if ( adjust > 0.0f )
-        {
-            clipped -= normal * adjust;
-        }
-
-        return clipped;
     }
 }

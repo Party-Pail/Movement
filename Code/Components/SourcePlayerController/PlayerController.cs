@@ -66,6 +66,9 @@ public sealed partial class PlayerController : Component, IScenePhysicsEvents, C
 		}
 	}
 
+	[Property, Title( "Draw Debug Elements" )]
+	public bool DrawDebug { get; set; }
+
 	[Sync]
 	public Vector3 WishVelocity { get; set; }
 
@@ -171,8 +174,6 @@ public sealed partial class PlayerController : Component, IScenePhysicsEvents, C
 
 		ChooseBestMoveMode();
 	}
-
-	Transform _groundTransform;
 
 	void UpdateGroundVelocity()
 	{
